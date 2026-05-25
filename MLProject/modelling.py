@@ -16,10 +16,15 @@ with mlflow.start_run() as run:
     with open("run_id.txt", "w") as f:
         f.write(run.info.run_id)
 
-    mlflow.sklearn.autolog()
-
     model = LogisticRegression(max_iter=1000)
 
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+    
+    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+    mlflow.log_metric("precision", precision_score(y_test, y_pred, pos_label=1))
+    mlflow.log_metric("recall", recall_score(y_test, y_pred, pos_label=1))
+    mlflow.log_metric("f1", f1_score(y_test, y_pred, pos_label=1))
+    
+    mlflow.sklearn.log_model(model, "model")
