@@ -1,0 +1,60 @@
+name: MLflow CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run actions/checkout@v3
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12.7"
+
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+
+      - name: Install dependencies
+        run: |
+          pip install mlflow
+
+      - name: Run mlflow project
+        run: |
+          cd MLProject
+          mlflow run .
+
+      - name: Get latest MLflow run_id
+        id: get_run_id
+        run: |
+          cd MLProject
+          RUN_ID=$(cat run_id.txt)
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "Run ID is $RUN_ID"
+
+      - name: Upload to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-artifacts
+          path: MLProject/mlruns/
+
+      - name: Build Docker Model
+        run: |
+          cd MLProject
+          mlflow models build-docker -m mlruns/0/${{ env.RUN_ID }}/artifacts/model -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-churn-model:latest
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/telco-churn-model:latest
