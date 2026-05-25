@@ -39,8 +39,11 @@ jobs:
         run: |
           cd MLProject
           RUN_ID=$(cat run_id.txt)
+          MODEL_URI=$(cat model_uri.txt)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "Run ID is $RUN_ID"
+          echo "MODEL_URI=$MODEL_URI" >> $GITHUB_ENV
+          echo "Run ID: $RUN_ID"
+          echo "Model URI: $MODEL_URI"
 
       - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
@@ -51,7 +54,7 @@ jobs:
       - name: Build Docker Model
         run: |
           cd MLProject
-          mlflow models build-docker -m mlruns/0/${{ env.RUN_ID }}/artifacts/model -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-customer-churn:latest
+          mlflow models build-docker -m "${{ env.MODEL_URI }}" -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-customer-churn:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
