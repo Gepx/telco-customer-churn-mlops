@@ -28,3 +28,7 @@ with mlflow.start_run() as run:
     mlflow.log_metric("f1", f1_score(y_test, y_pred, pos_label=1))
     
     mlflow.sklearn.log_model(model, "model")
+    
+    model_uri = mlflow.get_artifact_uri("model")
+    with open("model_uri.txt", "w") as f:
+        f.write(model_uri)
