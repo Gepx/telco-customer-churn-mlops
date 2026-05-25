@@ -12,8 +12,6 @@ y = data['Churn']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-mlflow.set_experiment("Telco Customer Churn Prediction")
-
 with mlflow.start_run() as run:
     with open("run_id.txt", "w") as f:
         f.write(run.info.run_id)
