@@ -31,7 +31,7 @@ jobs:
 
       - name: Run mlflow project
         run: |
-          mlflow run MLProject --env-manager=local.py
+          mlflow run MLProject --env-manager=local
 
       - name: Get latest MLflow run_id
         id: get_run_id
