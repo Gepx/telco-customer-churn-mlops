@@ -32,18 +32,21 @@ jobs:
       - name: Run mlflow project
         run: |
           cd MLProject
-          mlflow run . --env-manager=local
+          python3 modelling.py
 
       - name: Get latest MLflow run_id
         id: get_run_id
         run: |
           cd MLProject
           RUN_ID=$(cat run_id.txt)
-          MODEL_URI=$(cat model_uri.txt)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "MODEL_URI=$MODEL_URI" >> $GITHUB_ENV
           echo "Run ID: $RUN_ID"
-          echo "Model URI: $MODEL_URI"
+          echo "=== Artifacts ==="
+          find mlruns -type d -name "model" -path "*/artifacts/*"
+
+      - name: Install Python dependencies
+        run: |
+          pip install mlflow pandas scikit-learn numpy scipy pyarrow cloudpickle
 
       - name: Upload to GitHub Artifacts
         uses: actions/upload-artifact@v4
@@ -54,7 +57,9 @@ jobs:
       - name: Build Docker Model
         run: |
           cd MLProject
-          mlflow models build-docker -m "${{ env.MODEL_URI }}" -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-customer-churn:latest
+          MODEL_PATH=$(find mlruns -type d -name "model" -path "*/artifacts/*" | head -1)
+          echo "Found model at: $MODEL_PATH"
+          mlflow models build-docker -m "$MODEL_PATH" -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-customer-churn:latest
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
