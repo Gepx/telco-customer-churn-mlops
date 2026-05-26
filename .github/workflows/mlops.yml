@@ -37,7 +37,7 @@ jobs:
         id: get_run_id
         run: |
           cd MLProject
-          RUN_ID=$(cat run_id.txt)
+          RUN_ID=$(cat MLProject/run_id.txt)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "Run ID: $RUN_ID"
           echo "=== Artifacts ==="
@@ -51,11 +51,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
-          path: MLProject/mlruns/
+          path: mlruns/
 
       - name: Build Docker Model
         run: |
-          cd MLProject
           MODEL_PATH=$(find mlruns -type d -name "model" -path "*/artifacts/*" | head -1)
           echo "Found model at: $MODEL_PATH"
           mlflow models build-docker -m "$MODEL_PATH" -n ${{ secrets.DOCKERHUB_USERNAME }}/telco-customer-churn:latest
